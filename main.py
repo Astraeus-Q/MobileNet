@@ -4,8 +4,52 @@ import torchvision.transforms as transforms
 import numpy as np
 from mobilenet import MobileNet
 from utils import plot_loss_acc
+from torch.utils.data import random_split
+
+def get_train_valid_loader(dataset_dir, batch_size, download, seed, save_images):
+    transform_train = transforms.Compose([
+    transforms.RandomCrop(32, padding=4),
+    transforms.RandomHorizontalFlip(),
+    transforms.ToTensor(),
+    # transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)),
+    ])  
+
+    dataset = torchvision.datasets.CIFAR100(
+        root=dataset_dir, train=True, download=download, transform=transform_train)
+    
+    # Split the dataset 50000 into training set 40000 and validation set 10000.
+    # print(len(dataset)) # 50000
+    torch.manual_seed(seed)
+    train_size = 40000
+    valid_size = 10000
+    train_set, valid_set = random_split(dataset, [train_size, valid_size])
+ 
+    train_loader = torch.utils.data.DataLoader(
+        train_set, batch_size=batch_size, shuffle=True, num_workers=2)
+    
+    valid_loader = torch.utils.data.DataLoader(
+        valid_set, batch_size=batch_size, shuffle=True, num_workers=2)
+
+
+    return train_loader, valid_loader
+
+def get_test_loader(dataset_dir, batch_size):
+    transform_test = transforms.Compose([
+        transforms.ToTensor(),
+        # transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)),
+    ])
+
+    testset = torchvision.datasets.CIFAR100(
+        root=dataset_dir, train=False, download=True, transform=transform_test)
+
+    testloader = torch.utils.data.DataLoader(
+        testset, batch_size=batch_size, shuffle=False, num_workers=2)
+    
+    return testloader
+
 
 def main(args):
+    print("Let's Go!", flush = True)
     # fix random seeds
     torch.manual_seed(args.seed)
     np.random.seed(args.seed)
@@ -15,8 +59,10 @@ def main(args):
     # AI6103 students: You need to create the dataloaders youself
     train_loader, valid_loader = get_train_valid_loader(args.dataset_dir, args.batch_size, True, args.seed, save_images=args.save_images) 
     if args.test:
+        # print("Test")
         test_loader = get_test_loader(args.dataset_dir, args.batch_size)
 
+    print("Data has been loaded successfully!", flush = True)
     # model
     model = MobileNet(100)
     print(model)
@@ -37,6 +83,7 @@ def main(args):
     stat_training_acc = []
     stat_val_acc = []
     for epoch in range(args.epochs):
+        print(f"Epoch: {epoch+1}/{args.epochs}", flush = True)
         training_loss = 0
         training_acc = 0
         training_samples = 0
@@ -44,6 +91,7 @@ def main(args):
         val_acc = 0
         val_samples = 0
         # training
+        print("Start training...", flush = True)
         model.train()
         for imgs, labels in train_loader:
             imgs = imgs.cuda()
@@ -56,10 +104,13 @@ def main(args):
             loss.backward()
             optimizer.step()
             _, top_class = logits.topk(1, dim=1)
+            equals = top_class == labels.view(*top_class.shape)
             training_acc += torch.sum(equals.type(torch.FloatTensor)).item()
             training_loss += batch_size * loss.item()
             training_samples += batch_size
+
         # validation
+        print("Start Validation...", flush = True)
         model.eval()
         for val_imgs, val_labels in valid_loader:
             batch_size = val_imgs.shape[0]
@@ -77,7 +128,7 @@ def main(args):
         stat_training_acc.append(training_acc/training_samples)
         stat_val_acc.append(val_acc/val_samples)
         # print
-        print(f"Epoch {(epoch+1):d}/{args.epochs:d}.. Learning rate: {scheduler.get_lr()[0]:.4f}.. Train loss: {(training_loss/training_samples):.4f}.. Train acc: {(training_acc/training_samples):.4f}.. Val loss: {(val_loss/val_samples):.4f}.. Val acc: {(val_acc/val_samples):.4f}")
+        print(f"Epoch {(epoch+1):d}/{args.epochs:d}.. Learning rate: {scheduler.get_lr()[0]:.4f}.. Train loss: {(training_loss/training_samples):.4f}.. Train acc: {(training_acc/training_samples):.4f}.. Val loss: {(val_loss/val_samples):.4f}.. Val acc: {(val_acc/val_samples):.4f}", flush = True)
         # lr scheduler
         scheduler.step()
     # plot
