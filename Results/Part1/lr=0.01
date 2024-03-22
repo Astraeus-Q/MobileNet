@@ -1,0 +1,3 @@
+Epoch 15/15.. Learning rate: 0.0100.. Train loss: 0.8849.. Train acc: 0.7334.. Val loss: 3.1780.. Val acc: 0.3439
+Test loss:  tensor(0.0044, device='cuda:0', grad_fn=<DivBackward0>)
+Test acc:  0.3405
