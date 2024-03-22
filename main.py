@@ -6,16 +6,11 @@ from mobilenet import MobileNet
 from utils import plot_loss_acc
 from torch.utils.data import random_split
 
-def get_train_valid_loader(dataset_dir, batch_size, download, seed, save_images):
-    transform_train = transforms.Compose([
-    transforms.RandomCrop(32, padding=4),
-    transforms.RandomHorizontalFlip(),
-    transforms.ToTensor(),
-    # transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)),
-    ])  
+import torchvision.transforms.functional as TF
 
+def get_train_valid_loader(dataset_dir, batch_size, download, seed, save_images):
     dataset = torchvision.datasets.CIFAR100(
-        root=dataset_dir, train=True, download=download, transform=transform_train)
+        root=dataset_dir, train=True, download=download)
     
     # Split the dataset 50000 into training set 40000 and validation set 10000.
     # print(len(dataset)) # 50000
@@ -23,7 +18,44 @@ def get_train_valid_loader(dataset_dir, batch_size, download, seed, save_images)
     train_size = 40000
     valid_size = 10000
     train_set, valid_set = random_split(dataset, [train_size, valid_size])
- 
+    
+
+    categories = [0 for i in range(100)]
+    mean_train = 0
+    std_train = 0
+    i = 0
+    for image, label in train_set:
+        categories[label] += 1/len(train_set) # Proportion
+        
+        image = TF.to_tensor(image)
+        image = image # Normalize to [0, 1]
+        # print(image)
+        # Compute mean and standard deviation for each channel
+        mean_train += torch.mean(image, dim=(1, 2))
+        std_train += torch.std(image, dim=(1, 2))
+
+
+    mean_train /= len(train_set)
+    std_train /= len(train_set)
+    # print(mean_train, std_train)
+    
+    # print(categories)
+    # print(sum(categories))
+
+    transform_train = transforms.Compose([
+        transforms.RandomCrop(32, padding=4),
+        transforms.RandomHorizontalFlip(p=0.5),
+        transforms.ToTensor(),
+        transforms.Normalize(mean_train, std_train),
+    ])  
+
+    transform_valid = transforms.Compose([
+        transforms.ToTensor(),
+    ])  
+
+    train_set.dataset.transform = transform_train
+    valid_set.dataset.transform = transform_valid
+
     train_loader = torch.utils.data.DataLoader(
         train_set, batch_size=batch_size, shuffle=True, num_workers=2)
     
@@ -36,7 +68,6 @@ def get_train_valid_loader(dataset_dir, batch_size, download, seed, save_images)
 def get_test_loader(dataset_dir, batch_size):
     transform_test = transforms.Compose([
         transforms.ToTensor(),
-        # transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)),
     ])
 
     testset = torchvision.datasets.CIFAR100(
@@ -63,6 +94,7 @@ def main(args):
         test_loader = get_test_loader(args.dataset_dir, args.batch_size)
 
     print("Data has been loaded successfully!", flush = True)
+    
     # model
     model = MobileNet(100)
     print(model)

@@ -34,3 +34,6 @@ def plot_loss_acc(train_loss, val_loss, train_acc, val_acc, fig_name):
     plt.savefig(os.path.join('./diagram', fig_name))
 
     np.savez(os.path.join('./diagram', fig_name.replace('.png ', '.npz')), train_loss=train_loss, val_loss=val_loss, train_acc=train_acc, val_acc=val_acc)
+
+# Trial
+# plot_loss_acc([1,2,3],[1,2,3],[1,2,3],[1,2,3],"lr=0.05-lr_sche-wd=0.0005-mixup.png")
