@@ -4,9 +4,9 @@ python main.py \
 --dataset_dir ./datasets \
 --batch_size 128 \
 --epochs 15 \
---lr 0.05  --wd 0 \
+--lr 0.5  --wd 0 \
 --seed 0 \
---fig_name lr=0.05.png \
+--fig_name lr=0.5.png \
 --test
 # --mixup \
 # --lr_scheduler \
