@@ -28,7 +28,6 @@ def get_train_valid_loader(dataset_dir, batch_size, download, seed, save_images)
         categories[label] += 1/len(train_set) # Proportion
         
         image = TF.to_tensor(image)
-        image = image # Normalize to [0, 1]
         # print(image)
         # Compute mean and standard deviation for each channel
         mean_train += torch.mean(image, dim=(1, 2))
