@@ -6,9 +6,9 @@ python main.py \
 --epochs 300 \
 --lr 0.05  --wd 0 \
 --seed 0 \
---fig_name lr=0.05-lr_sche=const.png \
+--lr_scheduler \
+--fig_name lr=0.05-lr_sche=cos.png \
 --test
 # --mixup \
 # --wd 0.0005 \
-# --lr_scheduler \
 # --fig_name lr=0.05-lr_sche-wd=0.0005-mixup.png \

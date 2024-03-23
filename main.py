@@ -94,7 +94,7 @@ def main(args):
         test_loader = get_test_loader(args.dataset_dir, args.batch_size)
 
     print("Data has been loaded successfully!", flush = True)
-    
+
     # model
     model = MobileNet(100)
     print(model)
