@@ -77,6 +77,26 @@ def get_test_loader(dataset_dir, batch_size):
     
     return testloader
 
+def mixup_data(x, y, alpha=1.0, use_cuda=True):
+    '''Returns mixed inputs, pairs of targets, and lambda'''
+    if alpha > 0:
+        lam = np.random.beta(alpha, alpha)
+    else:
+        lam = 1
+
+    batch_size = x.size()[0]
+    if use_cuda:
+        index = torch.randperm(batch_size).cuda()
+    else:
+        index = torch.randperm(batch_size)
+
+    mixed_x = lam * x + (1 - lam) * x[index, :]
+    y_a, y_b = y, y[index]
+    return mixed_x, y_a, y_b, lam
+
+def mixup_criterion(criterion, pred, y_a, y_b, lam):
+    return lam * criterion(pred, y_a) + (1 - lam) * criterion(pred, y_b)
+
 
 def main(args):
     print("Let's Go!", flush = True)
@@ -127,11 +147,17 @@ def main(args):
         for imgs, labels in train_loader:
             imgs = imgs.cuda()
             labels = labels.cuda()
-           
+
+            # mixup
+            imgs, labels_a, labels_b, lam = mixup_data(imgs, labels, 0.2)
+
             batch_size = imgs.shape[0]
             optimizer.zero_grad()
             logits = model.forward(imgs)
-            loss = criterion(logits, labels)
+
+            # mixup
+            loss = mixup_criterion(criterion, logits, labels_a, labels_b, lam)
+            # loss = criterion(logits, labels)
             loss.backward()
             optimizer.step()
             _, top_class = logits.topk(1, dim=1)
