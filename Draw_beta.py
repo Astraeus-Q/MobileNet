@@ -13,8 +13,8 @@ pdf = beta.pdf(x, alpha, alpha)
 
 # Plot the PDF
 plt.plot(x, pdf, label=f'α={alpha}')
-plt.title('Probability Density Function of Beta Distribution')
+plt.title('PDF of Beta Distribution, α = 0.2')
 plt.xlabel('x')
 plt.ylabel('Probability Density')
-plt.legend()
+# plt.legend()
 plt.show()

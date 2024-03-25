@@ -6,6 +6,8 @@ from mobilenet import MobileNet
 from utils import plot_loss_acc
 from torch.utils.data import random_split
 
+import matplotlib.pyplot as plt
+import numpy as np
 import torchvision.transforms.functional as TF
 
 def get_train_valid_loader(dataset_dir, batch_size, download, seed, save_images):
@@ -25,7 +27,9 @@ def get_train_valid_loader(dataset_dir, batch_size, download, seed, save_images)
     std_train = 0
     i = 0
     for image, label in train_set:
-        categories[label] += 1/len(train_set) # Proportion
+        # categories[label] += 1/len(train_set) # Proportion
+        categories[label] += 1
+
         
         image = TF.to_tensor(image)
         # print(image)
@@ -38,6 +42,7 @@ def get_train_valid_loader(dataset_dir, batch_size, download, seed, save_images)
     std_train /= len(train_set)
     # print(mean_train, std_train)
     
+
     # print(categories)
     # print(sum(categories))
 
